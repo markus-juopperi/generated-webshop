@@ -1,0 +1,19 @@
+{
+    "id": "cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7",
+    "object": "text_completion",
+    "created": 1589478378,
+    "model": "text-davinci-003",
+    "choices": [
+      {
+        "text": "This cute baby sea otter is sure to bring a smile to your face! Its soft plush fur and adorable face make it perfect for cuddling. With its lifelike details, this sea otter is sure to become your child's best friend. It is the perfect size for your little one to carry around and can even be used as a pillow or stuffed animal. This sea otter is sure to make a great addition to any home. Its cute and cuddly nature will bring hours of joy and laughter to your family. Get your own cute baby sea otter today!",
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "length"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 5,
+      "completion_tokens": 7,
+      "total_tokens": 12
+    }
+  }
