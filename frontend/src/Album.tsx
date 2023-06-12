@@ -43,7 +43,6 @@ headers.append('Origin','http://localhost:3000');
 headers.append('Access-Control-Allow-Origin', '*');
 
 const adjectives = ["great", "beautiful", "excellent", "best", "good", "awesome", "useful", "superb", "fine", "superior"]
-const global_categories = ["cat", "dog", "horse", "tortoise"]
 
 interface MyState {
   products : Product[],
@@ -62,8 +61,8 @@ class Album extends React.Component<MyProps, MyState>{
     super(props);
     this.state = {
       products: [],
-      categories: global_categories,
-      selected_categories: ["cat", "dog", "horse", "tortoise"],
+      categories:  ["cat", "dog", "horse", "tortoise"],
+      selected_categories:  ["cat", "dog", "horse", "tortoise"],
       isLoaded: false
     }
   }
@@ -98,7 +97,7 @@ class Album extends React.Component<MyProps, MyState>{
 
   onChange(category: string) {
     let index: number = this.state.selected_categories.indexOf(category)
-    if(index != -1){
+    if(index !== -1){
       this.state.selected_categories.splice(index, 1)
       this.setState({
         selected_categories: this.state.selected_categories
@@ -109,8 +108,6 @@ class Album extends React.Component<MyProps, MyState>{
         selected_categories: this.state.selected_categories
       })
     }
-
-    console.log(this.state.selected_categories)
   }
 
   render() {
