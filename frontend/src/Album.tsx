@@ -1,24 +1,26 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Button from '@mui/material/Button';
-import CameraIcon from '@mui/icons-material/PhotoCamera';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import CssBaseline from '@mui/material/CssBaseline';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Link from '@mui/material/Link';
+import {
+  AppBar,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+  Checkbox,
+  Container,
+  CssBaseline,
+  FormControlLabel,
+  FormGroup,
+  Grid,
+  Link,
+  Stack,
+  Box,
+  Toolbar,
+  Typography
+} from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CameraIcon from '@mui/icons-material/PhotoCamera';
 import Product from './Product';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 
 function Copyright() {
   return (
@@ -35,82 +37,83 @@ function Copyright() {
 
 const theme = createTheme();
 
-let headers = new Headers();
+const headers = new Headers({
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Origin': 'http://localhost:3000',
+  'Access-Control-Allow-Origin': '*'
+});
 
-headers.append('Content-Type', 'application/json');
-headers.append('Accept', 'application/json');
-headers.append('Origin','http://localhost:3000');
-headers.append('Access-Control-Allow-Origin', '*');
-
-const adjectives = ["great", "beautiful", "excellent", "best", "good", "awesome", "useful", "superb", "fine", "superior"]
+const adjectives = ["great", "beautiful", "excellent", "best", "good", "awesome", "useful", "superb", "fine", "superior"];
+const defaultCategories = ["cat", "dog", "horse", "tortoise"];
 
 interface MyState {
-  products : Product[],
-  isLoaded: boolean,
-  categories: string[],
-  selected_categories: string[]
+  products: Product[];
+  isLoaded: boolean;
+  categories: string[];
+  selected_categories: string[];
 }
 
-interface MyProps {
+interface MyProps {}
 
-}
-
-class Album extends React.Component<MyProps, MyState>{
-
-  constructor(props : MyProps) {
+class Album extends React.Component<MyProps, MyState> {
+  constructor(props: MyProps) {
     super(props);
     this.state = {
       products: [],
-      categories:  ["cat", "dog", "horse", "tortoise"],
-      selected_categories:  ["cat", "dog", "horse", "tortoise"],
+      categories: defaultCategories,
+      selected_categories: [...defaultCategories],
       isLoaded: false
-    }
+    };
   }
 
-  componentDidMount(): void {
-    let loadedProducts: Product[] = [];
-    this.state.categories.map((category) => (
-      adjectives.map((adjective) => (
-        fetch(
-          "http://localhost:3001/products/" + adjective + "_" + category,{
+  async componentDidMount(): Promise<void> {
+    try {
+      const loadedProducts: Product[] = [];
+      const fetchPromises = this.state.categories.flatMap(category =>
+        adjectives.map(adjective =>
+          fetch(`http://localhost:3001/products/${adjective}_${category}`, {
             mode: "cors",
-            headers: headers,
+            headers,
             method: "GET"
-          }
-          ) 
-                  .then((res) => res.json())
-                  .then((json) => {
-                      console.log(json)
-                      let product: Product = json as Product
-                      loadedProducts.push(product)
-                      this.setState({
-                        products: loadedProducts
-                      })
-                      this.state.products.push(product)
-                  })
-        ))
-    ))
-    this.setState({
-      isLoaded: true
-    })
+          })
+          .then(res => res.json())
+          .then(json => {
+            const product = json as Product;
+            loadedProducts.push(product);
+            return product;
+          })
+        )
+      );
+
+      const products = await Promise.all(fetchPromises);
+      this.setState({
+        products: loadedProducts,
+        isLoaded: true
+      });
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      this.setState({ isLoaded: true });
+    }
   }
 
-  onChange(category: string) {
-    let index: number = this.state.selected_categories.indexOf(category)
-    if(index !== -1){
-      this.state.selected_categories.splice(index, 1)
-      this.setState({
-        selected_categories: this.state.selected_categories
-      })
-    } else {
-      this.state.selected_categories.push(category)
-      this.setState({
-        selected_categories: this.state.selected_categories
-      })
-    }
+  handleCategoryChange = (category: string): void => {
+    this.setState(prevState => {
+      const selected = new Set(prevState.selected_categories);
+      if (selected.has(category)) {
+        selected.delete(category);
+      } else {
+        selected.add(category);
+      }
+      return {
+        selected_categories: Array.from(selected)
+      };
+    });
   }
 
   render() {
+    const { products, categories, selected_categories } = this.state;
+
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -118,12 +121,11 @@ class Album extends React.Component<MyProps, MyState>{
           <Toolbar>
             <CameraIcon sx={{ mr: 2 }} /> 
             <Typography variant="h6" color="inherit" noWrap>
-              Album layout
+              Pet Products Catalog
             </Typography>
           </Toolbar>
         </AppBar>
         <main>
-          {/* Hero unit */}
           <Box
             sx={{
               bgcolor: 'background.paper',
@@ -139,12 +141,11 @@ class Album extends React.Component<MyProps, MyState>{
                 color="text.primary"
                 gutterBottom
               >
-                Album layout
+                Pet Products
               </Typography>
               <Typography variant="h5" align="center" color="text.secondary" paragraph>
-                Something short and leading about the collection below—its contents,
-                the creator, etc. Make it short and sweet, but not too short so folks
-                don&apos;t simply skip over it entirely.
+                Browse our selection of high-quality pet products. Filter by animal category
+                to find exactly what you're looking for.
               </Typography>
               <Stack
                 sx={{ pt: 4 }}
@@ -153,40 +154,66 @@ class Album extends React.Component<MyProps, MyState>{
                 justifyContent="center"
               >
                 <FormGroup row>
-                  {this.state.categories.map((category) =>(
-                    <FormControlLabel key={category} control={<Checkbox checked={this.state.selected_categories.includes(category)} onChange={() => {this.onChange(category)}}/>} label={category} />
-                  )
-                  )}
+                  {categories.map(category => (
+                    <FormControlLabel
+                      key={category}
+                      control={
+                        <Checkbox
+                          checked={selected_categories.includes(category)}
+                          onChange={() => this.handleCategoryChange(category)}
+                        />
+                      }
+                      label={category.charAt(0).toUpperCase() + category.slice(1)}
+                    />
+                  ))}
                 </FormGroup>
               </Stack>
             </Container>
           </Box>
           <Container sx={{ py: 8 }} maxWidth="xl">
-            {/* End hero unit */}
             <Grid container spacing={4}>
-              {this.state.products.map((product) => (
-                  <Grid item key={product.product_id} xs={12} sm={6} md={3} hidden={!this.state.selected_categories.includes(product.category_name)}>
+              {products.map(product => (
+                <Grid
+                  item
+                  key={product.product_id}
+                  xs={12}
+                  sm={6}
+                  md={3}
+                  hidden={!selected_categories.includes(product.category_name)}
+                >
                   <Card
-                    sx={{ height: '100%', display: 'flex', flexDirection: 'column'}}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.02)'
+                      }
+                    }}
                   >
                     <CardMedia
                       component="img"
                       image={product.image_path}
                       alt={product.product_name}
+                      sx={{ height: 200, objectFit: 'cover' }}
                     />
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography gutterBottom variant="h5" component="h2">
-                        {product.product_name.replace("_", " ")} 
-                        <br></br>
-                        Price: {product.price}€
+                        {product.product_name.split('_').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ')}
+                      </Typography>
+                      <Typography variant="h6" color="primary" gutterBottom>
+                        €{product.price.toFixed(2)}
                       </Typography>
                       <Typography>
                         {product.description}
                       </Typography>
                     </CardContent>
                     <CardActions>
-                      <Button size="small">View</Button>
-                      <Button size="small">Edit</Button>
+                      <Button size="small" variant="contained" color="primary">View Details</Button>
+                      <Button size="small" variant="outlined">Add to Cart</Button>
                     </CardActions>
                   </Card>
                 </Grid>
@@ -194,25 +221,30 @@ class Album extends React.Component<MyProps, MyState>{
             </Grid>
           </Container>
         </main>
-        {/* Footer */}
-        <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
+        <Box
+          component="footer"
+          sx={{
+            bgcolor: 'background.paper',
+            py: 6,
+            mt: 'auto'
+          }}
+        >
           <Typography variant="h6" align="center" gutterBottom>
-            Footer
+            Pet Products Store
           </Typography>
           <Typography
             variant="subtitle1"
             align="center"
             color="text.secondary"
-            component="p" 
+            component="p"
           >
-            Something here to give the footer a purpose!
+            Quality products for your beloved pets
           </Typography>
           <Copyright />
         </Box>
-        {/* End footer */}
       </ThemeProvider>
     );
   }
-}  
- 
+}
+
 export default Album;
